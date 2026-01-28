@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -31,13 +32,14 @@ public class Reserva {
     private User usuario;
 
     @Column(nullable = false)
-    private Date data_inicio;
+    private LocalDate data_inicio;
 
     @Column(nullable = false)
-    private Date data_fim;
+    private LocalDate data_fim;
 
     @Column(nullable = false)
     private BigDecimal valorTotal;
 
-    private Date data_criado;
+    @Column(nullable = false, updatable = false)
+    private Instant data_criado;
 }
