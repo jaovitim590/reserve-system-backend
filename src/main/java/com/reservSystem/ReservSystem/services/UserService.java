@@ -20,7 +20,7 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
-    public void createUser(UserDto user) throws Exception {
+    public String createUser(UserDto user) throws Exception {
         if(repository.existsByEmail(user.email())){
             throw new Exception("User with email already exists");
         }
@@ -39,6 +39,8 @@ public class UserService {
         u.setData_criado(Instant.now());
 
         repository.save(u);
+
+        return "Usuário criado com sucesso";
     }
 
     public void deleteUser(Integer id) throws Exception {
@@ -57,6 +59,14 @@ public class UserService {
         if(repository.existsById(id)){
             return repository.findById(id).get();
         }else {
+            throw new Exception("User not found");
+        }
+    }
+
+    public User findByEmail(String email) throws Exception {
+        if(repository.existsByEmail(email)){
+            return repository.findUserByEmail(email);
+        }else  {
             throw new Exception("User not found");
         }
     }
