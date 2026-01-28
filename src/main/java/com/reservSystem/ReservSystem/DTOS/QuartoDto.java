@@ -1,0 +1,25 @@
+package com.reservSystem.ReservSystem.DTOS;
+
+import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
+
+public record QuartoDto(
+
+        @NotBlank
+        String name,
+
+        @NotBlank
+        String descricao,
+
+        @NotNull
+        @Min(1)
+        Integer capacidade,
+
+        @NotNull
+        @DecimalMin(value = "0.0", inclusive = false)
+        BigDecimal valor,
+
+        @NotBlank
+        @Pattern(regexp = "RESERVADO|VAGO")
+        String status
+) {}

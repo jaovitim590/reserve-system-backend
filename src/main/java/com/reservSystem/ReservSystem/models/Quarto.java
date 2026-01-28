@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -18,7 +18,7 @@ public class Quarto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Enumerated(EnumType.STRING)
     private StatusQuarto status;
@@ -31,5 +31,6 @@ public class Quarto {
 
     private BigDecimal valor;
 
-    private Date data_criacao;
+    @Column(nullable = false, updatable = false)
+    private Instant data_criacao;
 }
