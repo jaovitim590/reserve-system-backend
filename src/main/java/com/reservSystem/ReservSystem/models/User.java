@@ -6,8 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
-import java.util.Date;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -31,7 +32,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private Date data_criado;
+    @Column(nullable = false, updatable = false)
+    private Instant data_criado;
 
-    private Boolean ativo;
+    @ColumnDefault("true")
+    private boolean ativo;
 }
