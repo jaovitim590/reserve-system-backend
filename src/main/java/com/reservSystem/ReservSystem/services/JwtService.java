@@ -5,11 +5,16 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtService {
     private static final String SECRET = "chave-super-secreta-com-32-chars";
+    private final byte[] keyBytes = SECRET.getBytes();
+    private final Key key = Keys.hmacShaKeyFor(keyBytes);
+
 
     public static String generateToken(User user) {
         return Jwts.builder()
@@ -28,5 +33,17 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            Jwts.parser()
+                    .verifyWith((SecretKey) key)
+                    .build()
+                    .parseSignedClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

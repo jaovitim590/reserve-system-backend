@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("user")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Autowired
@@ -26,19 +26,4 @@ public class UserController {
         return service.getAllUsers();
     }
 
-    @PostMapping
-    public String addUser(UserDto user) throws Exception {
-        return service.createUser(user);
-    }
-
-    @PostMapping("/login")
-    public String login(@RequestBody LoginDto dto) throws Exception {
-        User user = service.findByEmail(dto.email());
-
-        if (!encoder.matches(dto.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
-        }
-
-        return JwtService.generateToken(user);
-    }
 }
