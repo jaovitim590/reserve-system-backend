@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -69,5 +70,33 @@ public class UserService {
         }else  {
             throw new Exception("User not found");
         }
+    }
+    public String update(UserDto user) throws Exception {
+        User existingUser = repository.findUserByEmail(user.email());
+        if (existingUser == null) {
+            throw new Exception("User not found");
+        }
+
+        Optional.ofNullable(user.name())
+                .filter(name -> !name.isEmpty())
+                .ifPresent(existingUser::setName);
+
+        Optional.ofNullable(user.password())
+                .filter(pwd -> !pwd.isEmpty())
+                .map(encoder::encode)
+                .ifPresent(existingUser::setPassword);
+
+        Optional.ofNullable(user.role())
+                .filter(roleStr -> !roleStr.isEmpty())
+                .ifPresent(roleStr -> {
+                    try {
+                        existingUser.setRole(Role.valueOf(roleStr));
+                    } catch (IllegalArgumentException e) {
+                        throw new RuntimeException("Invalid role");
+                    }
+                });
+
+        repository.save(existingUser);
+        return "User updated successfully";
     }
 }

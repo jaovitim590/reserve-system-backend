@@ -43,4 +43,8 @@ public class QuartoService {
     public List<Quarto> getQuartos(){
         return repository.findAll();
     }
+
+    public List<Quarto> getQuartosAtivos(){
+        return repository.findAllByStatus("VAGO");
+    }
 }

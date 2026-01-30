@@ -27,7 +27,7 @@ public class ReservaService {
     @Autowired
     private QuartoService quartoService;
 
-    public void cadastrarReserva(ReservaDto reserva) throws Exception {
+    public String cadastrarReserva(ReservaDto reserva) throws Exception {
         Reserva r = new Reserva();
 
         try {
@@ -48,6 +48,8 @@ public class ReservaService {
         r.setData_criado(Instant.now());
 
         repository.save(r);
+
+        return "reserva feito com sucesso";
     }
 
     public BigDecimal calcularTotal(
@@ -72,5 +74,10 @@ public class ReservaService {
 
     public List<Reserva> getAllReservas(){
         return repository.findAll();
+    }
+
+    public boolean isQuartoDisponivel(Integer id,LocalDate data_inicio, LocalDate data_fim ){
+        List<Reserva> reservasConflitantes = repository.findConflictingReservations(id,data_inicio,data_fim);
+        return reservasConflitantes.isEmpty();
     }
 }
