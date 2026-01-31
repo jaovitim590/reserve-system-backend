@@ -6,6 +6,8 @@ import java.time.LocalDate;
 
 public record ReservaDto(
 
+        Integer id,
+
         @NotNull
         Integer quartoId,
 

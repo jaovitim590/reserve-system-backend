@@ -8,8 +8,10 @@ import com.reservSystem.ReservSystem.repositories.QuartoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuartoService {
@@ -17,7 +19,7 @@ public class QuartoService {
     @Autowired
     private QuartoRepository repository;
 
-    public void createQuarto(QuartoDto quarto){
+    public String createQuarto(QuartoDto quarto){
         Quarto q =  new Quarto();
 
         try {
@@ -32,6 +34,8 @@ public class QuartoService {
         q.setData_criacao(Instant.now());
 
         repository.save(q);
+
+        return "quarto criado com sucesso";
     }
 
     public Quarto getQuarto(Integer id) throws Exception{
@@ -46,5 +50,39 @@ public class QuartoService {
 
     public List<Quarto> getQuartosAtivos(){
         return repository.findAllByStatus("VAGO");
+    }
+
+    public String update(QuartoDto quarto) throws Exception {
+        Quarto existingQuarto = repository.findById(quarto.id())
+                .orElseThrow(() -> new Exception("Quarto not found"));
+
+        Optional.ofNullable(quarto.name())
+                .filter(name -> !name.isEmpty())
+                .ifPresent(existingQuarto::setName);
+
+        Optional.ofNullable(quarto.descricao())
+                .filter(desc -> !desc.isEmpty())
+                .ifPresent(existingQuarto::setDescricao);
+
+        Optional.ofNullable(quarto.capacidade())
+                .filter(cap -> cap > 0)
+                .ifPresent(existingQuarto::setCapacidade);
+
+        Optional.ofNullable(quarto.valor())
+                .filter(val -> val.compareTo(BigDecimal.ZERO) > 0)
+                .ifPresent(existingQuarto::setValor);
+
+        Optional.ofNullable(quarto.status())
+                .filter(statusStr -> !statusStr.isEmpty())
+                .ifPresent(statusStr -> {
+                    try {
+                        existingQuarto.setStatus(StatusQuarto.valueOf(statusStr));
+                    } catch (IllegalArgumentException e) {
+                        throw new RuntimeException("Invalid status");
+                    }
+                });
+
+        repository.save(existingQuarto);
+        return "Quarto updated successfully";
     }
 }

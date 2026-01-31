@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 
 public record QuartoDto(
 
+        Integer id,
+
         @NotBlank
         String name,
 

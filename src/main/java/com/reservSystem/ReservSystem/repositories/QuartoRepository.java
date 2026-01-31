@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface QuartoRepository extends JpaRepository<Quarto, Integer> {
     List<Quarto> findAllByStatus(String status);
+
+    Quarto findByNome(String nome);
 }
