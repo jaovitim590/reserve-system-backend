@@ -80,4 +80,12 @@ public class ReservaService {
         List<Reserva> reservasConflitantes = repository.findConflictingReservations(id,data_inicio,data_fim);
         return reservasConflitantes.isEmpty();
     }
+
+    public List<Reserva> getAllReservasByUser(String email) throws Exception {
+        User user = userService.findByEmail(email);
+
+        List<Reserva> reservas = repository.findAllByUsuario(user);
+
+        return reservas;
+    }
 }

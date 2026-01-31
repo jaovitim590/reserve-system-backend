@@ -1,6 +1,7 @@
 package com.reservSystem.ReservSystem.repositories;
 
 import com.reservSystem.ReservSystem.models.Reserva;
+import com.reservSystem.ReservSystem.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,8 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
     List<Reserva> findConflictingReservations(@Param("quartoId") Integer quartoId,
                                               @Param("dataInicio") LocalDate dataInicio,
                                               @Param("dataFim") LocalDate dataFim);
+
+    List<Reserva> findAllByUsuario(User user);
 }
 
 

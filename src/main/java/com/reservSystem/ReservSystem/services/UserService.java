@@ -99,4 +99,19 @@ public class UserService {
         repository.save(existingUser);
         return "User updated successfully";
     }
+
+    public boolean isadmin(String email){
+        try{
+            User user = repository.findUserByEmail(email);
+            if (user.getRole() == Role.ADMIN){
+                return true;
+            }else {
+                return false;
+            }
+        }catch (Exception e){
+            return false;
+        }
+
+
+    }
 }

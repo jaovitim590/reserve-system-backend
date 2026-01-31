@@ -3,7 +3,7 @@
 -- =============================================
 
 INSERT INTO usuarios (id, email, password, name, role, data_criado, ativo) VALUES
-                                                                               (1, 'admin@teste.com', '$2a$10$FZkDQEj6P2EwSPmW2wFQ6u9e9MHPJJu1DLOp13Pi2mJ7dJ7L4u8Qy', 'Administrador', 'ADMIN', CURRENT_TIMESTAMP, true),
+                                                                               (1, 'admin@gmail.com', '$2a$10$nGSRU2qTbknjTbek9XfZNeko2JJpjmKsiaagUOS33XTC8BIpd59uq', 'admin', 'ADMIN', CURRENT_TIMESTAMP, true),
                                                                                (2, 'usuario1@teste.com', '$2a$10$0JGpDcezkq7VdOH9K6Hc8u1R.D6vMSg6dKaN.8MHZbSNPs53lDD5i', 'João Silva', 'USER', CURRENT_TIMESTAMP, true),
                                                                                (3, 'usuario2@teste.com', '$2a$10$0JGpDcezkq7VdOH9K6Hc8u1R.D6vMSg6dKaN.8MHZbSNPs53lDD5i', 'Maria Oliveira', 'USER', CURRENT_TIMESTAMP, true),
                                                                                (4, 'usuario3@teste.com', '$2a$10$0JGpDcezkq7VdOH9K6Hc8u1R.D6vMSg6dKaN.8MHZbSNPs53lDD5i', 'Carlos Souza', 'USER', CURRENT_TIMESTAMP, false);
