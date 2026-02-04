@@ -2,57 +2,132 @@ package com.reservSystem.ReservSystem.controllers;
 
 import com.reservSystem.ReservSystem.DTOS.ReservaDto;
 import com.reservSystem.ReservSystem.models.Reserva;
+import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.ReservaService;
+import com.reservSystem.ReservSystem.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("reserva")
+@RequestMapping("/api/reserva")
 public class ReservaController {
+
     @Autowired
     private ReservaService service;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private JwtService jwtService;
 
-    @PostMapping
-    public ResponseEntity<?> criarReserva(ReservaDto reserva) throws Exception {
-        if (!service.isQuartoDisponivel(reserva.quartoId(), reserva.dataInicio(), reserva.dataFim())){
-            return ResponseEntity.status(401).body("quarto indisponivel");
+    private Optional<String> extractEmail(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Optional.empty();
         }
-        try{
-            return ResponseEntity.ok(
-                    service.cadastrarReserva(reserva)
-            );
-        }catch (Exception e){
-            return ResponseEntity.status(401).body(e.getMessage());
+
+        String token = authHeader.substring(7);
+        return Optional.ofNullable(jwtService.extractEmail(token));
+    }
+
+    @SneakyThrows
+    private User getAuthenticatedUser(HttpServletRequest request){
+        return extractEmail(request)
+                .map(email ->{
+                    try {
+                        return userService.findByEmail(email);
+                    }catch (Exception e){
+                        throw new RuntimeException(e);
+                    }
+                })
+                .orElseThrow(() -> new RuntimeException("Usuário não autenticado"));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> criarReserva(HttpServletRequest request,
+                                          @RequestBody @Valid ReservaDto reserva) {
+        if (!service.isQuartoDisponivel(reserva.quartoId(),
+                reserva.dataInicio(),
+                reserva.dataFim())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Quarto indisponível para as datas selecionadas");
+        }
+
+        try {
+            User user = getAuthenticatedUser(request);
+
+            if (!(user.getId() == reserva.usuarioId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Você só pode criar reservas para si mesmo");
+            }
+
+            Reserva novaReserva = service.cadastrarReserva(reserva);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 
     @GetMapping("/minhas")
-    public ResponseEntity<?> GetMyReservas(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
+    public ResponseEntity<?> getMinhasReservas(HttpServletRequest request) {
+        try {
+            String email = extractEmail(request)
+                    .orElseThrow(() -> new RuntimeException("Usuário não autenticado"));
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build();
-        }
-
-        String token = authHeader.substring(7);
-        String email = jwtService.extractEmail(token);
-
-        try{
-            List<Reserva> reservas =  service.getAllReservasByUser(email);
+            List<Reserva> reservas = service.getAllReservasByUser(email);
             return ResponseEntity.ok(reservas);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar reservas");
+        }
+    }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<?> cancelarReserva(@PathVariable Integer id,
+                                             HttpServletRequest request) {
+        try {
+            User user = getAuthenticatedUser(request);
+            Reserva reserva = service.getReservaById(id);
+
+            if (reserva == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Reserva não encontrada");
+            }
+
+            if (!(reserva.getUsuario().getId() == user.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Você só pode cancelar suas próprias reservas");
+            }
+
+            service.cancelReserva(id);
+            return ResponseEntity.ok("Reserva cancelada com sucesso");
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao cancelar reserva");
         }
     }
 }

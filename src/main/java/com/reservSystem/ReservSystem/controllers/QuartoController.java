@@ -3,18 +3,27 @@ package com.reservSystem.ReservSystem.controllers;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.QuartoService;
+import com.reservSystem.ReservSystem.services.ReservaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("quarto")
+@RequestMapping("/api/quarto")
 public class QuartoController {
 
     @Autowired
     private QuartoService service;
+
+    @Autowired
+    private ReservaService reservaService;
 
     @Autowired
     private JwtService jwtService;
@@ -34,4 +43,60 @@ public class QuartoController {
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
+
+    @GetMapping("/{id}/disponibilidade")
+    public ResponseEntity<?> verificarDisponibilidade(
+            @PathVariable Integer id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fim) {
+
+
+        if (inicio == null || fim == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("As datas de início e fim são obrigatórias"));
+        }
+
+        if (inicio.isAfter(fim)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("A data de início deve ser anterior à data de fim"));
+        }
+
+        if (inicio.isBefore(LocalDate.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("A data de início não pode ser no passado"));
+        }
+
+        try {
+            if (!service.quartoExists(id)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(createErrorResponse("Quarto não encontrado"));
+            }
+
+
+            boolean disponivel = reservaService.isQuartoDisponivel(id, inicio, fim);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("quartoId", id);
+            response.put("dataInicio", inicio);
+            response.put("dataFim", fim);
+            response.put("disponivel", disponivel);
+
+            if (!disponivel) {
+                response.put("mensagem", "Quarto não disponível para o período selecionado");
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Erro ao verificar disponibilidade: " + e.getMessage()));
+        }
+    }
+
+    private Map<String, String> createErrorResponse(String message) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", message);
+        return error;
+    }
 }
+

@@ -1,9 +1,11 @@
 package com.reservSystem.ReservSystem.services;
 
+import com.reservSystem.ReservSystem.DTOS.UpdatePerfilDto;
 import com.reservSystem.ReservSystem.DTOS.UserDto;
 import com.reservSystem.ReservSystem.models.Role;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.repositories.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,13 +68,13 @@ public class UserService {
 
     public User findByEmail(String email) throws Exception {
         if(repository.existsByEmail(email)){
-            return repository.findUserByEmail(email);
+            return repository.findByEmail(email);
         }else  {
             throw new Exception("User not found");
         }
     }
     public String update(UserDto user) throws Exception {
-        User existingUser = repository.findUserByEmail(user.email());
+        User existingUser = repository.findByEmail(user.email());
         if (existingUser == null) {
             throw new Exception("User not found");
         }
@@ -102,7 +104,7 @@ public class UserService {
 
     public boolean isadmin(String email){
         try{
-            User user = repository.findUserByEmail(email);
+            User user = repository.findByEmail(email);
             if (user.getRole() == Role.ADMIN){
                 return true;
             }else {
@@ -113,5 +115,24 @@ public class UserService {
         }
 
 
+    }
+
+    public User updatePerfil(Integer userId, UpdatePerfilDto updateDto) {
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+        if (updateDto.name() != null && !updateDto.name().isBlank()) {
+            user.setName(updateDto.name());
+        }
+
+        return repository.save(user);
+    }
+
+    public boolean existByEmail(String email){
+        if(repository.existsByEmail(email)){
+            return true;
+        }else  {
+            return false;
+        }
     }
 }

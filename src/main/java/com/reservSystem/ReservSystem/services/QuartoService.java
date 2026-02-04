@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +20,7 @@ public class QuartoService {
     @Autowired
     private QuartoRepository repository;
 
-    public String createQuarto(QuartoDto quarto){
+    public Quarto createQuarto(QuartoDto quarto){
         Quarto q =  new Quarto();
 
         try {
@@ -35,7 +36,7 @@ public class QuartoService {
 
         repository.save(q);
 
-        return "quarto criado com sucesso";
+        return q;
     }
 
     public Quarto getQuarto(Integer id) throws Exception{
@@ -49,12 +50,13 @@ public class QuartoService {
     }
 
     public List<Quarto> getQuartosAtivos(){
-        return repository.findAllByStatus("VAGO");
+        return repository.findAllByStatus(StatusQuarto.VAGO);
     }
 
-    public String update(QuartoDto quarto) throws Exception {
+    public Quarto update(QuartoDto quarto) throws Exception {
         Quarto existingQuarto = repository.findById(quarto.id())
                 .orElseThrow(() -> new Exception("Quarto not found"));
+
 
         Optional.ofNullable(quarto.name())
                 .filter(name -> !name.isEmpty())
@@ -83,6 +85,24 @@ public class QuartoService {
                 });
 
         repository.save(existingQuarto);
-        return "Quarto updated successfully";
+        return existingQuarto;
+    }
+
+    public String deleteQuarto(Integer id) throws Exception {
+        Quarto existingQuarto = repository.findById(id)
+                .orElseThrow(() -> new Exception("Quarto not found"));
+
+        repository.deleteById(id);
+        return "quarto deletado com sucesso!";
+    }
+
+    public boolean quartoExists(Integer id) {
+        Optional<Quarto> q = repository.findById(id);
+
+        if (q.isEmpty()){
+            return false;
+        }else {
+            return true;
+        }
     }
 }

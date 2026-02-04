@@ -9,66 +9,139 @@ import com.reservSystem.ReservSystem.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
     @Autowired
-    private UserService service;
+    private UserService userService;
 
     @Autowired
     private BCryptPasswordEncoder encoder;
 
     @Autowired
-    private final JwtService jwtService;
-
-    public AuthController(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
+    private JwtService jwtService;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginDto dto) throws Exception {
-        User user = service.findByEmail(dto.email());
+    public ResponseEntity<?> login(@RequestBody @Valid LoginDto dto) {
+        try {
+            User user = userService.findByEmail(dto.email());
 
-        if (!encoder.matches(dto.password(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(createErrorResponse("Credenciais inválidas"));
+            }
+
+            if (!encoder.matches(dto.password(), user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(createErrorResponse("Credenciais inválidas"));
+            }
+
+            String token = jwtService.generateToken(user);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("type", "Bearer");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Erro ao processar login"));
         }
-
-        return JwtService.generateToken(user);
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody @Valid UserDto dto) throws Exception {
-        return service.createUser(dto);
+    public ResponseEntity<?> register(@RequestBody @Valid UserDto dto) {
+        try {
+            boolean existingUser = userService.existByEmail(dto.email());
+            if (existingUser) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(createErrorResponse("Email já cadastrado"));
+            }
+
+            String token = userService.createUser(dto);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("type", "Bearer");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("Erro ao criar usuário: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout() {
-        return ResponseEntity.ok("Logout realizado");
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        return ResponseEntity.ok(Map.of(
+                "message", "Logout realizado com sucesso",
+                "note", "O token será invalidado quando expirar"
+        ));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MeDto> me(HttpServletRequest request) throws Exception {
+    public ResponseEntity<?> me(HttpServletRequest request) {
+        Optional<String> emailOpt = extractEmail(request);
+
+        if (emailOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(createErrorResponse("Token inválido ou não fornecido"));
+        }
+
+        try {
+            User user = userService.findByEmail(emailOpt.get());
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(createErrorResponse("Usuário não encontrado"));
+            }
+
+            MeDto userInfo = new MeDto(
+                    user.getEmail(),
+                    user.getName(),
+                    user.getRole().name()
+            );
+
+            return ResponseEntity.ok(userInfo);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Erro ao buscar informações do usuário"));
+        }
+    }
+
+
+    private Optional<String> extractEmail(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build();
+            return Optional.empty();
         }
-
-        String token = authHeader.substring(7);
-        String email = jwtService.extractEmail(token);
 
         try {
-            User user = service.findByEmail(email);
-            return ResponseEntity.ok(
-                    new MeDto(user.getEmail(), user.getName(), user.getRole().name()));
-        }catch (Exception e){
-            return ResponseEntity.status(401).build();
+            String token = authHeader.substring(7);
+            String email = jwtService.extractEmail(token);
+            return Optional.ofNullable(email);
+        } catch (Exception e) {
+            return Optional.empty();
         }
-
     }
 
+    private Map<String, String> createErrorResponse(String message) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", message);
+        return error;
+    }
 }

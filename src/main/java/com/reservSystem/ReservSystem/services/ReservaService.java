@@ -27,7 +27,7 @@ public class ReservaService {
     @Autowired
     private QuartoService quartoService;
 
-    public String cadastrarReserva(ReservaDto reserva) throws Exception {
+    public Reserva cadastrarReserva(ReservaDto reserva) throws Exception {
         Reserva r = new Reserva();
 
         try {
@@ -49,7 +49,7 @@ public class ReservaService {
 
         repository.save(r);
 
-        return "reserva feito com sucesso";
+        return r;
     }
 
     public BigDecimal calcularTotal(
@@ -88,4 +88,25 @@ public class ReservaService {
 
         return reservas;
     }
+
+    public String cancelReserva(Integer id) throws Exception{
+        Reserva reserva =  repository.findById(id).
+                orElseThrow(() -> new Exception("Reserva inexistente"));
+
+        if (reserva.getStatus() == StatusReserva.CANCELADO){
+            return "reserva ja foi cancelada";
+        }else {
+            reserva.setStatus(StatusReserva.CANCELADO);
+            repository.save(reserva);
+            return "Reserva cancelada!";
+        }
+    }
+
+    public Reserva getReservaById(Integer id) throws Exception {
+        Reserva reserva = repository.findById(id).
+                orElseThrow(() -> new Exception("reserva nao encontrada!"));
+        return reserva;
+    }
+
+
 }

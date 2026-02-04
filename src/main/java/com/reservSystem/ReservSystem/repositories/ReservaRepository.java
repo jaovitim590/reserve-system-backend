@@ -22,6 +22,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Integer> {
                                               @Param("dataFim") LocalDate dataFim);
 
     List<Reserva> findAllByUsuario(User user);
+
 }
 
 
