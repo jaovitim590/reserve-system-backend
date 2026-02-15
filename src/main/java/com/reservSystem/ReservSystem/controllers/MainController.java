@@ -6,10 +6,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping
 public class MainController {
+    @GetMapping("/")
+    public String home() {
+        return "ReservSystem API is running!";
+    }
+
     @GetMapping("/health")
-    public ResponseEntity<String> SAUDE(){
-        return ResponseEntity.ok().body("ta vivo");
+    public String health() {
+        return "OK";
     }
 }
