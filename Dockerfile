@@ -1,26 +1,27 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Stage 1: Build
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /workspace/app
 
+# Copia arquivos do projeto
 COPY pom.xml .
 COPY src src
 
+# Instala Maven e faz o build
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests && \
-    mkdir -p target/dependency && \
-    cd target/dependency && \
-    jar -xf ../*.jar
+    mvn clean package -DskipTests
 
+# Stage 2: Runtime
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
 
-FROM eclipse-temurin:17-jre-alpine
-VOLUME /tmp
+# Copia o JAR compilado
+COPY --from=build /workspace/app/target/ReservSystem.jar app.jar
 
-ARG DEPENDENCY=/workspace/app/target/dependency
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-
+# Cria diretório para dados do H2
 RUN mkdir -p /app/data
 
+# Expõe a porta
 EXPOSE 8081
 
-ENTRYPOINT ["java", "-cp", "app:app/lib/*", "com.reservSystem.ReservSystem.ReservSystemApplication"]
+# Comando de inicialização
+ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
