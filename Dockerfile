@@ -8,24 +8,20 @@ COPY src src
 
 # Instala Maven e faz o build
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests && \
-    ls -la target/
+    mvn clean package -DskipTests
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copia o JAR compilado (procura por qualquer .jar que não seja .original)
+# Copia TODOS os JARs e depois renomeia
 COPY --from=build /workspace/app/target/*.jar app.jar
-
-# Remove o arquivo .original se existir
-RUN if [ -f app.jar.original ]; then rm app.jar.original; fi
 
 # Cria diretório para dados do H2
 RUN mkdir -p /app/data
 
 # Expõe a porta
-EXPOSE 8081
+EXPOSE 8080
 
 # Comando de inicialização
 ENTRYPOINT ["java", "-Dspring.profiles.active=prod", "-jar", "app.jar"]
