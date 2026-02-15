@@ -1,6 +1,6 @@
 package com.reservSystem.ReservSystem.models;
 
 public enum StatusReserva {
-    ATIVO,
+    ATIVA,
     CANCELADO
 }

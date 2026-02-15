@@ -31,6 +31,9 @@ public class Quarto {
 
     private BigDecimal valor;
 
+    @Enumerated(EnumType.STRING)
+    private TipoQuarto tipo;
+
     @Column(nullable = false, updatable = false)
     private Instant data_criacao;
 }

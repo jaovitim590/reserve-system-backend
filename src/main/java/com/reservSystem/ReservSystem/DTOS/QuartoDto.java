@@ -22,6 +22,10 @@ public record QuartoDto(
         BigDecimal valor,
 
         @NotBlank
-        @Pattern(regexp = "RESERVADO|VAGO")
-        String status
+        @Pattern(regexp = "OCUPADO|DISPONIVEL")
+        String status,
+
+        @NotBlank
+        @Pattern(regexp = "SOLTEIRO|CASAL|SUITE|LUXO")
+        String tipo
 ) {}

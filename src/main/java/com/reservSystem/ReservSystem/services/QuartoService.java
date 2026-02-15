@@ -4,6 +4,7 @@ package com.reservSystem.ReservSystem.services;
 import com.reservSystem.ReservSystem.DTOS.QuartoDto;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.StatusQuarto;
+import com.reservSystem.ReservSystem.models.TipoQuarto;
 import com.reservSystem.ReservSystem.repositories.QuartoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class QuartoService {
         q.setCapacidade(quarto.capacidade());
         q.setName(quarto.name());
         q.setValor(quarto.valor());
+        q.setTipo(TipoQuarto.valueOf(quarto.tipo()));
         q.setData_criacao(Instant.now());
 
         repository.save(q);
@@ -50,7 +52,7 @@ public class QuartoService {
     }
 
     public List<Quarto> getQuartosAtivos(){
-        return repository.findAllByStatus(StatusQuarto.VAGO);
+        return repository.findAllByStatus(StatusQuarto.DISPONIVEL);
     }
 
     public Quarto update(QuartoDto quarto) throws Exception {
@@ -73,6 +75,16 @@ public class QuartoService {
         Optional.ofNullable(quarto.valor())
                 .filter(val -> val.compareTo(BigDecimal.ZERO) > 0)
                 .ifPresent(existingQuarto::setValor);
+
+        Optional.ofNullable(quarto.tipo())
+                        .filter(tipo -> !tipo.isEmpty())
+                        .ifPresent(tipo -> {
+                            try {
+                                existingQuarto.setTipo(TipoQuarto.valueOf(tipo));
+                            }catch (IllegalArgumentException e){
+                                throw new RuntimeException("Invalid role");
+                            }
+                        });
 
         Optional.ofNullable(quarto.status())
                 .filter(statusStr -> !statusStr.isEmpty())
