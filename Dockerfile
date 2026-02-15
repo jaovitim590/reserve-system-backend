@@ -8,14 +8,18 @@ COPY src src
 
 # Instala Maven e faz o build
 RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests
+    mvn clean package -DskipTests && \
+    ls -la target/
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copia o JAR compilado
-COPY --from=build /workspace/app/target/ReservSystem.jar app.jar
+# Copia o JAR compilado (procura por qualquer .jar que não seja .original)
+COPY --from=build /workspace/app/target/*.jar app.jar
+
+# Remove o arquivo .original se existir
+RUN if [ -f app.jar.original ]; then rm app.jar.original; fi
 
 # Cria diretório para dados do H2
 RUN mkdir -p /app/data
