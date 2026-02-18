@@ -4,6 +4,7 @@ import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.QuartoService;
 import com.reservSystem.ReservSystem.services.ReservaService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/quarto")
@@ -29,9 +31,16 @@ public class QuartoController {
     private JwtService jwtService;
 
     @GetMapping
-    public ResponseEntity<List<Quarto>> GetQuartos(){
+    public ResponseEntity<List<Quarto>> GetQuartos(HttpServletRequest request){
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             List<Quarto> quartos = service.getQuartosAtivos();
             return ResponseEntity.ok(quartos);
+        }else{
+            List<Quarto> quartos = service.getQuartos();
+            return ResponseEntity.ok(quartos);
+        }
     }
 
     @GetMapping("/{id}")
