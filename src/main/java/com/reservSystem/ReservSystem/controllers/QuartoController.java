@@ -33,11 +33,14 @@ public class QuartoController {
     @GetMapping
     public ResponseEntity<List<Quarto>> GetQuartos(HttpServletRequest request){
         String authHeader = request.getHeader("Authorization");
-
+        String token = authHeader.substring(7);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                List<Quarto> quartos = service.getQuartosAtivos();
+                return ResponseEntity.ok(quartos);
+        }else if (!jwtService.isTokenValid(token)){
             List<Quarto> quartos = service.getQuartosAtivos();
             return ResponseEntity.ok(quartos);
-        }else{
+        }else {
             List<Quarto> quartos = service.getQuartos();
             return ResponseEntity.ok(quartos);
         }
