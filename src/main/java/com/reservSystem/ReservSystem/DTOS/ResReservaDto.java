@@ -1,5 +1,6 @@
 package com.reservSystem.ReservSystem.DTOS;
 
+import com.reservSystem.ReservSystem.models.Quarto;
 import jakarta.validation.constraints.*;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +12,7 @@ public record ResReservaDto(
         Integer id,
 
         @NotNull
-        Integer quartoId,
+        Quarto quartoId,
 
         @NotNull
         @FutureOrPresent

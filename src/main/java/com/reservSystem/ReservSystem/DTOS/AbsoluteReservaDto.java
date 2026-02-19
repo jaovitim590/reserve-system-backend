@@ -1,5 +1,7 @@
 package com.reservSystem.ReservSystem.DTOS;
 
+import com.reservSystem.ReservSystem.models.Quarto;
+import com.reservSystem.ReservSystem.models.User;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -10,10 +12,10 @@ public record AbsoluteReservaDto(
         Integer id,
 
         @NotNull
-        Integer quartoId,
+        Quarto quartoId,
 
         @NotNull
-        Integer usuarioId,
+        User usuarioId,
 
         @NotNull
         @FutureOrPresent
