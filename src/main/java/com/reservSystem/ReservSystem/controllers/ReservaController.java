@@ -70,7 +70,7 @@ public class ReservaController {
         try {
             User user = getAuthenticatedUser(request);
 
-            Reserva novaReserva = service.cadastrarReserva(reserva, user);
+            ResReservaDto novaReserva = service.cadastrarReserva(reserva, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
 
         } catch (RuntimeException e) {
