@@ -2,6 +2,7 @@ package com.reservSystem.ReservSystem.services;
 
 
 import com.reservSystem.ReservSystem.DTOS.ReservaDto;
+import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.Reserva;
 import com.reservSystem.ReservSystem.models.StatusReserva;
@@ -66,9 +67,9 @@ public class ReservaService {
         return valorDiaria.multiply(BigDecimal.valueOf(dias));
     }
 
-    public void deletarReserva(Integer id) throws Exception {
+    public void deletarReserva(Integer id){
         Reserva reserva = repository.findById(id).
-                orElseThrow(() -> new Exception("Reserva inexistente"));
+                orElseThrow(() -> new RecursoNaoEncontradoException("reserva"));
         repository.delete(reserva);
     }
 
@@ -89,9 +90,9 @@ public class ReservaService {
         return reservas;
     }
 
-    public String cancelReserva(Integer id) throws Exception{
+    public String cancelReserva(Integer id){
         Reserva reserva =  repository.findById(id).
-                orElseThrow(() -> new Exception("Reserva inexistente"));
+                orElseThrow(() -> new RecursoNaoEncontradoException("reserva"));
 
         if (reserva.getStatus() == StatusReserva.CANCELADO){
             return "reserva ja foi cancelada";
@@ -104,7 +105,7 @@ public class ReservaService {
 
     public Reserva getReservaById(Integer id) throws Exception {
         Reserva reserva = repository.findById(id).
-                orElseThrow(() -> new Exception("reserva nao encontrada!"));
+                orElseThrow(() -> new RecursoNaoEncontradoException("reserva"));
         return reserva;
     }
 

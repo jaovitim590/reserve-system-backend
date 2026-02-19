@@ -23,7 +23,7 @@ public record ReservaDto(
         LocalDate dataFim,
 
         @NotBlank
-        @Pattern(regexp = "ATIVO|CANCELADO")
+        @Pattern(regexp = "ATIVA|CANCELADO")
         String status
 ) {
 

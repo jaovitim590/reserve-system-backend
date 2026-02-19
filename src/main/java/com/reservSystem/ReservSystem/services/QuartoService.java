@@ -2,6 +2,9 @@ package com.reservSystem.ReservSystem.services;
 
 
 import com.reservSystem.ReservSystem.DTOS.QuartoDto;
+import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
+import com.reservSystem.ReservSystem.exceptions.RoleInvalidaException;
+import com.reservSystem.ReservSystem.exceptions.StatusInvalidoException;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.StatusQuarto;
 import com.reservSystem.ReservSystem.models.TipoQuarto;
@@ -27,7 +30,7 @@ public class QuartoService {
         try {
             q.setStatus(StatusQuarto.valueOf(quarto.status()));
         }catch (Exception e){
-            throw new RuntimeException("Status invalido");
+            throw new StatusInvalidoException();
         }
         q.setDescricao(quarto.descricao());
         q.setCapacidade(quarto.capacidade());
@@ -41,9 +44,9 @@ public class QuartoService {
         return q;
     }
 
-    public Quarto getQuarto(Integer id) throws Exception{
+    public Quarto getQuarto(Integer id){
         Quarto q = repository.findById(id).
-                orElseThrow(() -> new Exception("quarto not found"));
+                orElseThrow(() -> new RecursoNaoEncontradoException("quarto"));
         return q;
     }
 
@@ -55,9 +58,9 @@ public class QuartoService {
         return repository.findAllByStatus(StatusQuarto.DISPONIVEL);
     }
 
-    public Quarto update(QuartoDto quarto) throws Exception {
+    public Quarto update(QuartoDto quarto){
         Quarto existingQuarto = repository.findById(quarto.id())
-                .orElseThrow(() -> new Exception("Quarto not found"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("quarto"));
 
 
         Optional.ofNullable(quarto.name())
@@ -82,7 +85,7 @@ public class QuartoService {
                             try {
                                 existingQuarto.setTipo(TipoQuarto.valueOf(tipo));
                             }catch (IllegalArgumentException e){
-                                throw new RuntimeException("Invalid role");
+                                throw new RoleInvalidaException();
                             }
                         });
 
@@ -92,7 +95,7 @@ public class QuartoService {
                     try {
                         existingQuarto.setStatus(StatusQuarto.valueOf(statusStr));
                     } catch (IllegalArgumentException e) {
-                        throw new RuntimeException("Invalid status");
+                        throw new StatusInvalidoException();
                     }
                 });
 
@@ -100,9 +103,9 @@ public class QuartoService {
         return existingQuarto;
     }
 
-    public String deleteQuarto(Integer id) throws Exception {
+    public String deleteQuarto(Integer id){
         Quarto existingQuarto = repository.findById(id)
-                .orElseThrow(() -> new Exception("Quarto not found"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("quarto"));
 
         repository.deleteById(id);
         return "quarto deletado com sucesso!";

@@ -3,6 +3,7 @@ package com.reservSystem.ReservSystem.controllers;
 import com.reservSystem.ReservSystem.DTOS.LoginDto;
 import com.reservSystem.ReservSystem.DTOS.MeDto;
 import com.reservSystem.ReservSystem.DTOS.UserDto;
+import com.reservSystem.ReservSystem.exceptions.EmailJaCadastradoException;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.UserService;
@@ -61,26 +62,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid UserDto dto) {
-        try {
-            boolean existingUser = userService.existByEmail(dto.email());
-            if (existingUser) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(createErrorResponse("Email já cadastrado"));
-            }
-
-            String token = userService.createUser(dto);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("token", token);
-            response.put("type", "Bearer");
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(createErrorResponse("Erro ao criar usuário: " + e.getMessage()));
+    public ResponseEntity<?> register(@RequestBody @Valid UserDto dto){
+        if (userService.existByEmail(dto.email())) {
+            throw new EmailJaCadastradoException();
         }
+        userService.createUser(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Usuário criado com sucesso");
     }
 
     @PostMapping("/logout")

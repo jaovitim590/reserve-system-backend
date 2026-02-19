@@ -13,16 +13,15 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
-
-    @Autowired
-    private JwtService jwtService;
 
     @Autowired
     private UserService userService;
@@ -33,34 +32,9 @@ public class AdminController {
     @Autowired
     private ReservaService reservaService;
 
-    private boolean isAdmin(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return false;
-        }
-
-        String token = authHeader.substring(7);
-        String email = jwtService.extractEmail(token);
-
-        if (email == null) {
-            return false;
-        }
-
-        return userService.isadmin(email);
-    }
-
-    private ResponseEntity<?> forbiddenResponse() {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("Acesso negado: apenas administradores podem realizar esta ação");
-    }
-
 
     @GetMapping("/usuario")
-    public ResponseEntity<?> getAllUsers(HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
+    public ResponseEntity<?> getAllUsers() {
 
         List<User> allUsers = userService.getAllUsers();
         return ResponseEntity.ok(allUsers);
@@ -68,22 +42,13 @@ public class AdminController {
 
 
     @GetMapping("/reserva")
-    public ResponseEntity<?> getAllReservas(HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> getAllReservas() {
         List<Reserva> allReservas = reservaService.getAllReservas();
         return ResponseEntity.ok(allReservas);
     }
 
     @DeleteMapping("/reserva/{id}")
-    public ResponseEntity<?> cancelarReserva(@PathVariable Integer id,
-                                             HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> cancelarReserva(@PathVariable Integer id) {
         try {
             reservaService.cancelReserva(id);
             return ResponseEntity.ok("Reserva cancelada com sucesso");
@@ -95,12 +60,7 @@ public class AdminController {
 
 
     @PostMapping("/quarto")
-    public ResponseEntity<?> createQuarto(HttpServletRequest request,
-                                          @RequestBody @Valid QuartoDto quarto) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> createQuarto(@RequestBody @Valid QuartoDto quarto) {
         try {
             Quarto novoQuarto = quartoService.createQuarto(quarto);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoQuarto);
@@ -111,13 +71,7 @@ public class AdminController {
     }
 
     @PutMapping("/quarto/{id}")
-    public ResponseEntity<?> updateQuarto(HttpServletRequest request,
-                                          @PathVariable Integer id,
-                                          @RequestBody @Valid QuartoDto quarto) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> updateQuarto(@PathVariable Integer id,@RequestBody @Valid QuartoDto quarto) {
         try {
             Quarto quartoAtualizado = quartoService.update(quarto);
             return ResponseEntity.ok(quartoAtualizado);
@@ -128,12 +82,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/quarto/{id}")
-    public ResponseEntity<?> deleteQuarto(HttpServletRequest request,
-                                          @PathVariable Integer id) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> deleteQuarto(@PathVariable Integer id) {
         try {
             quartoService.deleteQuarto(id);
             return ResponseEntity.ok("Quarto deletado com sucesso");
@@ -144,11 +93,7 @@ public class AdminController {
     }
 
     @GetMapping("/quarto")
-    public ResponseEntity<?> getAllQuartos(HttpServletRequest request) {
-        if (!isAdmin(request)) {
-            return forbiddenResponse();
-        }
-
+    public ResponseEntity<?> getAllQuartos() {
         List<Quarto> allQuartos = quartoService.getQuartos();
         return ResponseEntity.ok(allQuartos);
     }

@@ -2,6 +2,9 @@ package com.reservSystem.ReservSystem.services;
 
 import com.reservSystem.ReservSystem.DTOS.UpdatePerfilDto;
 import com.reservSystem.ReservSystem.DTOS.UserDto;
+import com.reservSystem.ReservSystem.exceptions.EmailJaCadastradoException;
+import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
+import com.reservSystem.ReservSystem.exceptions.RoleInvalidaException;
 import com.reservSystem.ReservSystem.models.Role;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.repositories.UserRepository;
@@ -23,9 +26,9 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder encoder;
 
-    public String createUser(UserDto user) throws Exception {
-        if(repository.existsByEmail(user.email())){
-            throw new Exception("User with email already exists");
+    public void createUser(UserDto user) {
+        if (repository.existsByEmail(user.email())) {
+            throw new EmailJaCadastradoException();
         }
 
         User u = new User();
@@ -33,106 +36,86 @@ public class UserService {
         try {
             u.setRole(Role.valueOf(user.role()));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Role inválida");
+            throw new RoleInvalidaException();
         }
-        String password = encoder.encode(user.password());
+
         u.setEmail(user.email());
-        u.setPassword(password);
+        u.setPassword(encoder.encode(user.password()));
         u.setName(user.name());
         u.setData_criado(Instant.now());
 
         repository.save(u);
-
-        return "Usuário criado com sucesso";
     }
 
-    public void deleteUser(Integer id) throws Exception {
-        if(repository.existsById(id)){
-            repository.deleteById(id);
-        }else {
-            throw new Exception("User not found");
+    public void deleteUser(Integer id) {
+        if (!repository.existsById(id)) {
+            throw new RecursoNaoEncontradoException("Usuário");
         }
+        repository.deleteById(id);
     }
 
     public List<User> getAllUsers() {
         return repository.findAll();
     }
 
-    public User getUser(Integer id) throws Exception {
-        if(repository.existsById(id)){
-            return repository.findById(id).get();
-        }else {
-            throw new Exception("User not found");
-        }
+    public User getUser(Integer id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário"));
     }
 
-    public User findByEmail(String email) throws Exception {
-        if(repository.existsByEmail(email)){
-            return repository.findByEmail(email);
-        }else  {
-            throw new Exception("User not found");
+    public User findByEmail(String email) {
+        User user = repository.findByEmail(email);
+        if (user == null) {
+            throw new RecursoNaoEncontradoException("Usuário");
         }
+        return user;
     }
-    public String update(UserDto user) throws Exception {
+
+    public void update(UserDto user) {
         User existingUser = repository.findByEmail(user.email());
         if (existingUser == null) {
-            throw new Exception("User not found");
+            throw new RecursoNaoEncontradoException("Usuário");
         }
 
         Optional.ofNullable(user.name())
-                .filter(name -> !name.isEmpty())
+                .filter(name -> !name.isBlank())
                 .ifPresent(existingUser::setName);
 
         Optional.ofNullable(user.password())
-                .filter(pwd -> !pwd.isEmpty())
+                .filter(pwd -> !pwd.isBlank())
                 .map(encoder::encode)
                 .ifPresent(existingUser::setPassword);
 
         Optional.ofNullable(user.role())
-                .filter(roleStr -> !roleStr.isEmpty())
+                .filter(roleStr -> !roleStr.isBlank())
                 .ifPresent(roleStr -> {
                     try {
                         existingUser.setRole(Role.valueOf(roleStr));
                     } catch (IllegalArgumentException e) {
-                        throw new RuntimeException("Invalid role");
+                        throw new RoleInvalidaException();
                     }
                 });
 
         repository.save(existingUser);
-        return "User updated successfully";
-    }
-
-    public boolean isadmin(String email){
-        try{
-            User user = repository.findByEmail(email);
-            if (user.getRole() == Role.ADMIN){
-                return true;
-            }else {
-                return false;
-            }
-        }catch (Exception e){
-            return false;
-        }
-
-
     }
 
     public User updatePerfil(Integer userId, UpdatePerfilDto updateDto) {
         User user = repository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário"));
 
-        if (updateDto.name() != null && !updateDto.name().isBlank()) {
-            user.setName(updateDto.name());
-        }
+        Optional.ofNullable(updateDto.name())
+                .filter(name -> !name.isBlank())
+                .ifPresent(user::setName);
 
         return repository.save(user);
     }
 
-    public boolean existByEmail(String email){
-        if(repository.existsByEmail(email)){
-            return true;
-        }else  {
-            return false;
-        }
+    public boolean existByEmail(String email) {
+        return repository.existsByEmail(email);
+    }
+
+    public boolean isadmin(String email) {
+        User user = repository.findByEmail(email);
+        return user != null && user.getRole() == Role.ADMIN;
     }
 }

@@ -109,11 +109,6 @@ public class ReservaController {
             User user = getAuthenticatedUser(request);
             Reserva reserva = service.getReservaById(id);
 
-            if (reserva == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Reserva não encontrada");
-            }
-
             if (!(reserva.getUsuario().getId() == user.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("Você só pode cancelar suas próprias reservas");

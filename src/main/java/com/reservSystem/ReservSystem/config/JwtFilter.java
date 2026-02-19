@@ -1,5 +1,6 @@
 package com.reservSystem.ReservSystem.config;
 
+import com.reservSystem.ReservSystem.models.Role;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.UserService;

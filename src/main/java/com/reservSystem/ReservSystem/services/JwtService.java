@@ -3,6 +3,8 @@ package com.reservSystem.ReservSystem.services;
 import com.reservSystem.ReservSystem.models.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -11,24 +13,27 @@ import java.util.Date;
 
 @Component
 public class JwtService {
-    private static final String SECRET = "chave-super-secreta-com-32-chars";
-    private final byte[] keyBytes = SECRET.getBytes();
-    private final Key key = Keys.hmacShaKeyFor(keyBytes);
 
+    @Value("${jwt.secret}")
+    private String secret;
 
-    public static String generateToken(User user) {
+    private Key getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(User user) {
         return Jwts.builder()
                 .subject(user.getEmail())
                 .claim("role", user.getRole().name())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 86400000))
-                .signWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                .signWith(getKey())
                 .compact();
     }
 
     public String extractEmail(String token) {
         return Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(SECRET.getBytes()))
+                .verifyWith((SecretKey) getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
@@ -38,7 +43,7 @@ public class JwtService {
     public boolean isTokenValid(String token) {
         try {
             Jwts.parser()
-                    .verifyWith((SecretKey) key)
+                    .verifyWith((SecretKey) getKey())
                     .build()
                     .parseSignedClaims(token);
             return true;
