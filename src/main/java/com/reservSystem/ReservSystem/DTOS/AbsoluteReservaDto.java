@@ -1,17 +1,18 @@
 package com.reservSystem.ReservSystem.DTOS;
 
 import jakarta.validation.constraints.*;
-import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ResReservaDto(
-
+public record AbsoluteReservaDto(
+        @NotNull
         Integer id,
 
         @NotNull
         Integer quartoId,
+
+        @NotNull
+        Integer usuarioId,
 
         @NotNull
         @FutureOrPresent
@@ -25,5 +26,4 @@ public record ResReservaDto(
         @Pattern(regexp = "ATIVA|CANCELADO")
         String status
 ) {
-
 }

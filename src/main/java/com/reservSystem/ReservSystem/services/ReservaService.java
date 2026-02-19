@@ -28,7 +28,7 @@ public class ReservaService {
     @Autowired
     private QuartoService quartoService;
 
-    public Reserva cadastrarReserva(ReqReservaDto reserva, User usuario) throws Exception {
+    public ResReservaDto cadastrarReserva(ReqReservaDto reserva, User usuario) throws Exception {
         Reserva r = new Reserva();
 
         Quarto quarto = quartoService.getQuarto(reserva.quartoId());
@@ -42,8 +42,9 @@ public class ReservaService {
         r.setData_criado(Instant.now());
 
         repository.save(r);
+        ResReservaDto newReserva = new ResReservaDto(null,r.getQuarto().getId(),r.getData_inicio(), r.getData_fim(), r.getStatus().toString());
 
-        return r;
+        return newReserva;
     }
 
     public BigDecimal calcularTotal(
