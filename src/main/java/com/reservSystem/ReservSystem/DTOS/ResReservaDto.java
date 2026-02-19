@@ -1,10 +1,12 @@
 package com.reservSystem.ReservSystem.DTOS;
 
 import jakarta.validation.constraints.*;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ReservaDto(
+public record ResReservaDto(
 
         Integer id,
 

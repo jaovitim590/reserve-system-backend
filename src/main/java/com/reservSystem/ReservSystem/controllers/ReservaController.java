@@ -1,7 +1,10 @@
 package com.reservSystem.ReservSystem.controllers;
 
-import com.reservSystem.ReservSystem.DTOS.ReservaDto;
+import com.reservSystem.ReservSystem.DTOS.ReqReservaDto;
+import com.reservSystem.ReservSystem.DTOS.ResReservaDto;
+import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
 import com.reservSystem.ReservSystem.models.Reserva;
+import com.reservSystem.ReservSystem.models.StatusReserva;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.services.JwtService;
 import com.reservSystem.ReservSystem.services.ReservaService;
@@ -56,7 +59,7 @@ public class ReservaController {
 
     @PostMapping
     public ResponseEntity<?> criarReserva(HttpServletRequest request,
-                                          @RequestBody @Valid ReservaDto reserva) {
+                                          @RequestBody @Valid ReqReservaDto reserva) {
         if (!service.isQuartoDisponivel(reserva.quartoId(),
                 reserva.dataInicio(),
                 reserva.dataFim())) {
@@ -67,12 +70,7 @@ public class ReservaController {
         try {
             User user = getAuthenticatedUser(request);
 
-            if (!(user.getId() == reserva.usuarioId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Você só pode criar reservas para si mesmo");
-            }
-
-            Reserva novaReserva = service.cadastrarReserva(reserva);
+            Reserva novaReserva = service.cadastrarReserva(reserva, user);
             return ResponseEntity.status(HttpStatus.CREATED).body(novaReserva);
 
         } catch (RuntimeException e) {
@@ -88,7 +86,7 @@ public class ReservaController {
     public ResponseEntity<?> getMinhasReservas(HttpServletRequest request) {
         try {
             String email = extractEmail(request)
-                    .orElseThrow(() -> new RuntimeException("Usuário não autenticado"));
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("usuario"));
 
             List<Reserva> reservas = service.getAllReservasByUser(email);
             return ResponseEntity.ok(reservas);

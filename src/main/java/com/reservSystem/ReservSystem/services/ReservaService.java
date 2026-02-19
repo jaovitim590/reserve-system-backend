@@ -1,7 +1,7 @@
 package com.reservSystem.ReservSystem.services;
 
-
-import com.reservSystem.ReservSystem.DTOS.ReservaDto;
+import com.reservSystem.ReservSystem.DTOS.ReqReservaDto;
+import com.reservSystem.ReservSystem.DTOS.ResReservaDto;
 import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.Reserva;
@@ -28,16 +28,9 @@ public class ReservaService {
     @Autowired
     private QuartoService quartoService;
 
-    public Reserva cadastrarReserva(ReservaDto reserva) throws Exception {
+    public Reserva cadastrarReserva(ReqReservaDto reserva, User usuario) throws Exception {
         Reserva r = new Reserva();
 
-        try {
-            r.setStatus(StatusReserva.valueOf(reserva.status()));
-        }catch(Exception e){
-            throw new RuntimeException("Status invalido");
-        }
-
-        User usuario =  userService.getUser(reserva.usuarioId());
         Quarto quarto = quartoService.getQuarto(reserva.quartoId());
 
         r.setValorTotal(calcularTotal(reserva.dataInicio(), reserva.dataFim(), quarto.getValor()));
