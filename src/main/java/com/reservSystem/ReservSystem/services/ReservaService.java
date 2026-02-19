@@ -42,7 +42,7 @@ public class ReservaService {
         r.setData_criado(Instant.now());
 
         repository.save(r);
-        ResReservaDto newReserva = new ResReservaDto(null,r.getQuarto().getId(),r.getData_inicio(), r.getData_fim(), r.getStatus().toString());
+        ResReservaDto newReserva = new ResReservaDto(null,r.getQuarto().getId(),r.getData_inicio(), r.getData_fim(),StatusReserva.ATIVA.toString());
 
         return newReserva;
     }
