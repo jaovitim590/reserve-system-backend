@@ -23,7 +23,10 @@ public record ResReservaDto(
 
         @NotBlank
         @Pattern(regexp = "ATIVA|CANCELADO")
-        String status
+        String status,
+
+        @NotNull
+        BigDecimal valorTotal
 ) {
 
 }

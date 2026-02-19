@@ -2,6 +2,7 @@ package com.reservSystem.ReservSystem.DTOS;
 
 import jakarta.validation.constraints.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record AbsoluteReservaDto(
@@ -21,6 +22,9 @@ public record AbsoluteReservaDto(
         @NotNull
         @Future
         LocalDate dataFim,
+
+        @NotNull
+        BigDecimal valorTotal,
 
         @NotBlank
         @Pattern(regexp = "ATIVA|CANCELADO")
