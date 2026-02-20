@@ -1,7 +1,6 @@
 package com.reservSystem.ReservSystem.services;
 
-import com.reservSystem.ReservSystem.DTOS.ReqReservaDto;
-import com.reservSystem.ReservSystem.DTOS.ResReservaDto;
+import com.reservSystem.ReservSystem.DTOS.*;
 import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.Reserva;
@@ -112,5 +111,55 @@ public class ReservaService {
         return reserva;
     }
 
+    public ReceitaDto getReceitasGerais(){
+        List<Reserva> allReservas = repository.findAll();
+        BigDecimal receitaAtivas = BigDecimal.ZERO;
+        BigDecimal receitaCanceladas= BigDecimal.ZERO;
 
+        for (Reserva r : allReservas) {
+            if (r.getStatus() == StatusReserva.ATIVA) {
+                receitaAtivas = receitaAtivas.add(r.getValorTotal());
+            } else if (r.getStatus() == StatusReserva.CANCELADO) {
+                receitaCanceladas = receitaCanceladas.add(r.getValorTotal());
+            }
+        }
+
+        return new ReceitaDto(receitaAtivas, receitaCanceladas);
+    }
+
+    public StatsDto getStats() {
+        Long totalReservas = repository.count();
+        Long ativas = repository.countByStatus(StatusReserva.ATIVA);
+        Long canceladas = repository.countByStatus(StatusReserva.CANCELADO);
+        Long totalUsuarios = userService.countUsers();
+        Long totalQuartos = quartoService.countQuartos();
+        Long ocupados = quartoService.countByStatus("OCUPADO");
+        Double taxa = totalQuartos > 0 ? (ocupados * 100.0 / totalQuartos) : 0.0;
+
+        return new StatsDto(totalUsuarios, totalReservas, totalQuartos, ativas, canceladas, taxa);
+    }
+
+    public List<Reserva> getRecentReservas(int limit) {
+        return repository.findRecentReservas(limit);
+    }
+
+    public ReceitaPeriodoDto getReceitaPorPeriodo(LocalDate inicio, LocalDate fim) {
+        List<Reserva> reservas = repository.findByPeriodo(inicio, fim);
+        BigDecimal ativas = BigDecimal.ZERO;
+        BigDecimal canceladas = BigDecimal.ZERO;
+
+        for (Reserva r : reservas) {
+            if (r.getStatus() == StatusReserva.ATIVA) {
+                ativas = ativas.add(r.getValorTotal());
+            } else if (r.getStatus() == StatusReserva.CANCELADO) {
+                canceladas = canceladas.add(r.getValorTotal());
+            }
+        }
+
+        return new ReceitaPeriodoDto(inicio, fim, ativas, canceladas, ativas.add(canceladas));
+    }
+
+    public List<Reserva> getReservasPorPeriodo(LocalDate inicio, LocalDate fim) {
+        return repository.findByPeriodo(inicio, fim);
+    }
 }

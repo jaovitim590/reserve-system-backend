@@ -118,4 +118,7 @@ public class UserService {
         User user = repository.findByEmail(email);
         return user != null && user.getRole() == Role.ADMIN;
     }
+    public Long countUsers() {
+        return repository.count();
+    }
 }

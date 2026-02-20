@@ -2,6 +2,8 @@ package com.reservSystem.ReservSystem.services;
 
 
 import com.reservSystem.ReservSystem.DTOS.QuartoDto;
+import com.reservSystem.ReservSystem.DTOS.QuartoPopularDto;
+import com.reservSystem.ReservSystem.DTOS.QuartoStatusDto;
 import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
 import com.reservSystem.ReservSystem.exceptions.RoleInvalidaException;
 import com.reservSystem.ReservSystem.exceptions.StatusInvalidoException;
@@ -9,6 +11,7 @@ import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.StatusQuarto;
 import com.reservSystem.ReservSystem.models.TipoQuarto;
 import com.reservSystem.ReservSystem.repositories.QuartoRepository;
+import com.reservSystem.ReservSystem.repositories.ReservaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,8 @@ public class QuartoService {
 
     @Autowired
     private QuartoRepository repository;
+    @Autowired
+    private ReservaRepository reservaRepository;
 
     public Quarto createQuarto(QuartoDto quarto){
         Quarto q =  new Quarto();
@@ -119,5 +124,25 @@ public class QuartoService {
         }else {
             return true;
         }
+    }
+
+    public QuartoPopularDto getQuartoMaisReservado() {
+        return reservaRepository.findMostReservedQuarto()
+                .orElseThrow(() -> new RecursoNaoEncontradoException("quarto"));
+    }
+    public Long countQuartos() {
+        return repository.count();
+    }
+
+    public Long countByStatus(String status) {
+        return repository.countByStatus(status);
+    }
+
+    public QuartoStatusDto getQuartosPorStatus() {
+        return new QuartoStatusDto(
+                repository.countByStatus("DISPONIVEL"),
+                repository.countByStatus("OCUPADO"),
+                repository.countByStatus("MANUTENCAO")
+        );
     }
 }

@@ -1,6 +1,8 @@
 package com.reservSystem.ReservSystem.controllers;
 
 import com.reservSystem.ReservSystem.DTOS.QuartoDto;
+import com.reservSystem.ReservSystem.DTOS.QuartoPopularDto;
+import com.reservSystem.ReservSystem.DTOS.ReceitaDto;
 import com.reservSystem.ReservSystem.models.Quarto;
 import com.reservSystem.ReservSystem.models.Reserva;
 import com.reservSystem.ReservSystem.models.User;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -35,11 +38,9 @@ public class AdminController {
 
     @GetMapping("/usuario")
     public ResponseEntity<?> getAllUsers() {
-
         List<User> allUsers = userService.getAllUsers();
         return ResponseEntity.ok(allUsers);
     }
-
 
     @GetMapping("/reserva")
     public ResponseEntity<?> getAllReservas() {
@@ -58,6 +59,16 @@ public class AdminController {
         }
     }
 
+    @GetMapping("/receita")
+    public ResponseEntity<?> getReceita(){
+        try{
+            ReceitaDto receitas = reservaService.getReceitasGerais();
+            return ResponseEntity.ok(receitas);
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("erro ao procurar receitas: "+ e.getMessage());
+        }
+    }
 
     @PostMapping("/quarto")
     public ResponseEntity<?> createQuarto(@RequestBody @Valid QuartoDto quarto) {
@@ -96,5 +107,66 @@ public class AdminController {
     public ResponseEntity<?> getAllQuartos() {
         List<Quarto> allQuartos = quartoService.getQuartos();
         return ResponseEntity.ok(allQuartos);
+    }
+
+    @GetMapping("/quarto/best")
+    public ResponseEntity<?> getBestQuarto(){
+        QuartoPopularDto quarto = quartoService.getQuartoMaisReservado();
+        return ResponseEntity.ok(quarto);
+    }
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats() {
+        try {
+            return ResponseEntity.ok(reservaService.getStats());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar estatísticas: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reserva/recentes")
+    public ResponseEntity<?> getRecentReservas(
+            @RequestParam(defaultValue = "10") int limit) {
+        try {
+            return ResponseEntity.ok(reservaService.getRecentReservas(limit));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar reservas recentes: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/reserva/periodo")
+    public ResponseEntity<?> getReservasPorPeriodo(
+            @RequestParam LocalDate dataInicio,
+            @RequestParam LocalDate dataFim) {
+        try {
+            List<Reserva> reservas = reservaService.getReservasPorPeriodo(dataInicio, dataFim);
+            return ResponseEntity.ok(reservas);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar reservas: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/receita/periodo")
+    public ResponseEntity<?> getReceitaPorPeriodo(
+            @RequestParam LocalDate dataInicio,
+            @RequestParam LocalDate dataFim) {
+        try {
+            return ResponseEntity.ok(reservaService.getReceitaPorPeriodo(dataInicio, dataFim));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar receita: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/quarto/status")
+    public ResponseEntity<?> getQuartosPorStatus() {
+        try {
+            return ResponseEntity.ok(quartoService.getQuartosPorStatus());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao buscar status dos quartos: " + e.getMessage());
+        }
     }
 }
