@@ -85,12 +85,9 @@ public class ReservaController {
     @GetMapping("/minhas")
     public ResponseEntity<?> getMinhasReservas(HttpServletRequest request) {
         try {
-            String email = extractEmail(request)
-                    .orElseThrow(() -> new RecursoNaoEncontradoException("usuario"));
-
-            List<ResReservaDto> reservas = service.getAllReservasByUser(email);
-            return ResponseEntity.ok(reservas);
-
+            User user = getAuthenticatedUser(request);
+            List<ResReservaDto> minhasReservas = service.getAllReservasByUser(user);
+            return ResponseEntity.ok(minhasReservas);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(e.getMessage());

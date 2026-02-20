@@ -8,6 +8,7 @@ import com.reservSystem.ReservSystem.models.Reserva;
 import com.reservSystem.ReservSystem.models.StatusReserva;
 import com.reservSystem.ReservSystem.models.User;
 import com.reservSystem.ReservSystem.repositories.ReservaRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +43,7 @@ public class ReservaService {
         r.setData_criado(Instant.now());
 
         repository.save(r);
-        ResReservaDto newReserva = new ResReservaDto(null,r.getQuarto(),r.getData_inicio(), r.getData_fim(),StatusReserva.ATIVA.toString(),r.getValorTotal());
+        ResReservaDto newReserva = new ResReservaDto(r.getId(),r.getQuarto(),r.getData_inicio(), r.getData_fim(),StatusReserva.ATIVA.toString(),r.getValorTotal());
 
         return newReserva;
     }
@@ -76,13 +77,13 @@ public class ReservaService {
         return reservasConflitantes.isEmpty();
     }
 
-    public List<ResReservaDto> getAllReservasByUser(String email) throws Exception {
-        User user = userService.findByEmail(email);
+    @Transactional
+    public List<ResReservaDto> getAllReservasByUser(User user) throws Exception {
 
         return repository.findAllByUsuario(user)
                 .stream()
                 .map(r -> new ResReservaDto(
-                        null,
+                        r.getId(),
                         r.getQuarto(),
                         r.getData_inicio(),
                         r.getData_fim(),
