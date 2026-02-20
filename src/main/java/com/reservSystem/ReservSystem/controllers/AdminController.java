@@ -169,4 +169,5 @@ public class AdminController {
                     .body("Erro ao buscar status dos quartos: " + e.getMessage());
         }
     }
+
 }

@@ -12,5 +12,5 @@ public interface QuartoRepository extends JpaRepository<Quarto, Integer> {
     List<Quarto> findAllByStatus(StatusQuarto status);
 
     Quarto findByName(String name);
-    Long countByStatus(String status);
+    Long countByStatus(StatusQuarto status);
 }

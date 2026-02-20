@@ -134,14 +134,14 @@ public class QuartoService {
         return repository.count();
     }
 
-    public Long countByStatus(String status) {
+    public Long countByStatus(StatusQuarto status) {
         return repository.countByStatus(status);
     }
 
     public QuartoStatusDto getQuartosPorStatus() {
         return new QuartoStatusDto(
-                repository.countByStatus(StatusQuarto.DISPONIVEL.toString()),
-                repository.countByStatus(StatusQuarto.OCUPADO.toString())
+                repository.countByStatus(StatusQuarto.DISPONIVEL),
+                repository.countByStatus(StatusQuarto.OCUPADO)
         );
     }
 }

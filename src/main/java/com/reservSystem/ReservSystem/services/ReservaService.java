@@ -130,7 +130,7 @@ public class ReservaService {
         Long canceladas = repository.countByStatus(StatusReserva.CANCELADO);
         Long totalUsuarios = userService.countUsers();
         Long totalQuartos = quartoService.countQuartos();
-        Long ocupados = quartoService.countByStatus(StatusQuarto.OCUPADO.toString());
+        Long ocupados = quartoService.countByStatus(StatusQuarto.OCUPADO);
         Double taxa = totalQuartos > 0 ? (ocupados * 100.0 / totalQuartos) : 0.0;
 
         return new StatsDto(totalUsuarios, totalReservas, totalQuartos, ativas, canceladas, taxa);
