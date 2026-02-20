@@ -140,9 +140,8 @@ public class QuartoService {
 
     public QuartoStatusDto getQuartosPorStatus() {
         return new QuartoStatusDto(
-                repository.countByStatus("DISPONIVEL"),
-                repository.countByStatus("OCUPADO"),
-                repository.countByStatus("MANUTENCAO")
+                repository.countByStatus(StatusQuarto.DISPONIVEL.toString()),
+                repository.countByStatus(StatusQuarto.OCUPADO.toString())
         );
     }
 }

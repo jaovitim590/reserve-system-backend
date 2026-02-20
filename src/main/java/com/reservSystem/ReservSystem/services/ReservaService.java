@@ -2,10 +2,7 @@ package com.reservSystem.ReservSystem.services;
 
 import com.reservSystem.ReservSystem.DTOS.*;
 import com.reservSystem.ReservSystem.exceptions.RecursoNaoEncontradoException;
-import com.reservSystem.ReservSystem.models.Quarto;
-import com.reservSystem.ReservSystem.models.Reserva;
-import com.reservSystem.ReservSystem.models.StatusReserva;
-import com.reservSystem.ReservSystem.models.User;
+import com.reservSystem.ReservSystem.models.*;
 import com.reservSystem.ReservSystem.repositories.ReservaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +130,7 @@ public class ReservaService {
         Long canceladas = repository.countByStatus(StatusReserva.CANCELADO);
         Long totalUsuarios = userService.countUsers();
         Long totalQuartos = quartoService.countQuartos();
-        Long ocupados = quartoService.countByStatus("OCUPADO");
+        Long ocupados = quartoService.countByStatus(StatusQuarto.OCUPADO.toString());
         Double taxa = totalQuartos > 0 ? (ocupados * 100.0 / totalQuartos) : 0.0;
 
         return new StatsDto(totalUsuarios, totalReservas, totalQuartos, ativas, canceladas, taxa);
