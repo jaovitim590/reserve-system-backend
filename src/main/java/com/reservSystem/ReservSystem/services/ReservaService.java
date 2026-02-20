@@ -76,12 +76,20 @@ public class ReservaService {
         return reservasConflitantes.isEmpty();
     }
 
-    public List<Reserva> getAllReservasByUser(String email) throws Exception {
+    public List<ResReservaDto> getAllReservasByUser(String email) throws Exception {
         User user = userService.findByEmail(email);
 
-        List<Reserva> reservas = repository.findAllByUsuario(user);
-
-        return reservas;
+        return repository.findAllByUsuario(user)
+                .stream()
+                .map(r -> new ResReservaDto(
+                        null,
+                        r.getQuarto(),
+                        r.getData_inicio(),
+                        r.getData_fim(),
+                        r.getStatus().toString(),
+                        r.getValorTotal()
+                ))
+                .toList();
     }
 
     public String cancelReserva(Integer id){

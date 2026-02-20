@@ -88,7 +88,7 @@ public class ReservaController {
             String email = extractEmail(request)
                     .orElseThrow(() -> new RecursoNaoEncontradoException("usuario"));
 
-            List<Reserva> reservas = service.getAllReservasByUser(email);
+            List<ResReservaDto> reservas = service.getAllReservasByUser(email);
             return ResponseEntity.ok(reservas);
 
         } catch (RuntimeException e) {
